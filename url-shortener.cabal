@@ -24,7 +24,7 @@ source-repository head
 library
   exposed-modules:
       Api
-      Lib
+      Handlers
       Models
       Storage
       Typeclasses
@@ -38,6 +38,8 @@ library
     , bcrypt
     , binary
     , bytestring
+    , servant-auth
+    , servant-auth-server
     , servant-server
     , text
     , time
@@ -58,6 +60,8 @@ executable url-shortener-exe
     , bcrypt
     , binary
     , bytestring
+    , servant-auth
+    , servant-auth-server
     , servant-server
     , text
     , time
@@ -83,6 +87,8 @@ test-suite url-shortener-test
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , servant-auth
+    , servant-auth-server
     , servant-server
     , text
     , time
