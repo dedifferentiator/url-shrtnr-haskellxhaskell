@@ -1,73 +1,39 @@
-# {Team Name} - URL shortener {🧪}
-
-This is a template project for "Software testing" course labs. Use it to create your own repo and 
-fulfill/rewrite this document (at least, replace everything in `{...}`).
+# Haskell×Haskell - URL shortener λ
 
 ## Students group
 
-- {Surname Name (in Ukrainian)} {email}
-- ...
-- {Surname Name (in Ukrainian)} {email}
+- Россоха Євген [email](mailto:art6661322@gmail.com)
+- Поляков Марк [email](mailto:mark.poliakow@gmail.com)
+- Андрющенко Данило [email](mailto:danilandryushenko34@gmail.com)
+- Корнійчук Ольга [email](mailto:1704hiolya@gmail.com)
 
 ## Design document
 
-The [design document]({Place actual link to the design document Google Docs file here}) that
+The [design document](https://docs.google.com/document/d/16LwsIjEAmsiqBv0mjE9whbA3j2UVXsQz4U74acbpmeA/edit?usp=sharing) that
 describes architecture and implementation details of this project.
 
 ### System structure
 
-After the third laboratory assignment groups will switch projects with one another. Because of this,
-all projects have to have the same high-level structure. Also, this is the reason why you should not
-modify project dependencies.
-
-Please remember that the main goal of the course is **testing** and everything else is just an 
-implementation harness.
-
-There are four modules:
-- `auth` **authentication module** - creates new users, authenticates existing ones
-- `bigtable` - **big table** - a key-value persistence storage (please, pay attention that you should implement it by
-  yourself. It means that it is not allowed to use data bases, another key-value storages 
-  implementation, etc)
-- `logic` - **business logic** - logic of URL shortening
-- `rest` - **REST API** - a module that provides a REST API. [Micronaut] framework is already added
-  to project dependencies. It simplifies creation of REST API and provides built-in JWT 
-  authentication.
+There are several modules:
+- `authentication` **authentication module** - creates new users, authenticates existing ones
+- `storage` - **database connection module** - a key-value persistence storage
+- `urls` - **url-related business logic** - logic of URL shortening
+- `api` - **REST API** - a module that provides a REST API and handlers for it
+- `models` - **domain types** - declaration of user and link types
 
 ## Environment prerequisites
 
-### Java
-This is a Java project, so you will need an environment with installed [JDK] 15. For installation, 
-you could use:
-- [sdkman] on Linux/MacOS 
-- [AdoptOpenJDK] on Windows
-
-### IDE  
-As IDE use [IntelliJ Idea Edu].
+### Haskell
+This is a Haskell project, so you will need an environment with installed `GHC` 8.10.3 and `stack` 2.5.1.
 
 ### Checkstyle
-We use [checkstyle] to ensure coding standards. To get real-time detection in IDE you could use [Checkstyle-IDEA] 
-plugin. We use Google rules (local copy `./config/checkstyle/checkstyle.xml`).
+We use `ormolu` as a code formatter.
 
 ## How to start development
 
 1. Clone this repo
-2. Open the project directory in IntelliJ Idea Edu
-3. Configure IDE code style settings
-  
-    1. Open `Settings`
-    2. Go to `Editor` -> `Code Style` -> `Import Scheme`
-       ![Settings screenshot](./media/code-style-import.png)
-    3. Import scheme from `./config/idea/intellij-java-google-style.xml`
+2. `$ stack build`
 
 ## Commit messages
 
-Write commit messages accordingly by [7 rules of good commit messages].
-  
-[JDK]: https://en.wikipedia.org/wiki/Java_Development_Kit
-[IntelliJ Idea Edu]: https://www.jetbrains.com/idea-edu/
-[sdkman]: https://sdkman.io/
-[AdoptOpenJDK]: https://adoptopenjdk.net/
-[7 rules of good commit messages]: https://chris.beams.io/posts/git-commit/#seven-rules
-[Micronaut]: https://micronaut.io/
-[checkstyle]: https://checkstyle.org/
-[Checkstyle-IDEA]: https://plugins.jetbrains.com/plugin/1065-checkstyle-idea
+Write commit messages accordingly by [7 rules of good commit messages](https://chris.beams.io/posts/git-commit/#seven-rules).

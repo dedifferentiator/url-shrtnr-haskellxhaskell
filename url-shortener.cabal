@@ -1,0 +1,92 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.3.
+--
+-- see: https://github.com/sol/hpack
+
+name:           url-shortener
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/future-stardust/url-shrtnr-haskellxhaskell>
+homepage:       https://github.com/future-stardust/url-shrtnr-haskellxhaskell#readme
+bug-reports:    https://github.com/future-stardust/url-shrtnr-haskellxhaskell/issues
+author:         Eugene Rossokha, Mark Polaków, Danil Andriushchenko, Helga Korniichuk
+maintainer:     arjaz@protonmail.com, alnyan@protonmail.com, danilandryushenko34@gmail.com, 1704hiolya@gmail.com
+license:        GPL-3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/future-stardust/url-shrtnr-haskellxhaskell
+
+library
+  exposed-modules:
+      Api
+      Lib
+      Models
+      Storage
+      Typeclasses
+  other-modules:
+      Paths_url_shortener
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bcrypt
+    , binary
+    , bytestring
+    , servant-server
+    , text
+    , time
+    , wai
+    , warp
+  default-language: Haskell2010
+
+executable url-shortener-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_url_shortener
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base
+    , bcrypt
+    , binary
+    , bytestring
+    , servant-server
+    , text
+    , time
+    , url-shortener
+    , wai
+    , warp
+  default-language: Haskell2010
+
+test-suite url-shortener-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_url_shortener
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base
+    , bcrypt
+    , binary
+    , bytestring
+    , hspec
+    , hspec-wai
+    , hspec-wai-json
+    , servant-server
+    , text
+    , time
+    , url-shortener
+    , wai
+    , warp
+  default-language: Haskell2010
