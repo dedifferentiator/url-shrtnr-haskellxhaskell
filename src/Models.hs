@@ -14,10 +14,10 @@ data User = User
 data Token = Token JWT UTCTime
   deriving (Show, Eq)
 
-data Link = Link
-  { linkOrigin :: Url,
-    linkAlias :: Text,
-    linkAuthor :: Email
+data Alias = Alias
+  { aliasOrigin :: Url,
+    aliasAlias :: Text,
+    aliasAuthor :: Email
   }
 
 -- REVIEW: Is there a servant type for this?

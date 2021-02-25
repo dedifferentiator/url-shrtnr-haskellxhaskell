@@ -10,10 +10,10 @@ type LinkKey = Text
 
 class (MonadIO m) => Database m where
   getAllUsers :: m [User]
-  getAllLinks :: m [Link]
+  getAllLinks :: m [Alias]
 
   addUser :: User -> m Bool
   removeUser :: UserKey -> m Bool
 
-  addLink :: Link -> m Bool
+  addLink :: Alias -> m Bool
   removeLink :: LinkKey -> m Bool

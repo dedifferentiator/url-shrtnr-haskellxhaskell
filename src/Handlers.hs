@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Handlers
@@ -8,8 +9,10 @@ module Handlers
 where
 
 import Api
+import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Aeson.TH
+import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
@@ -39,4 +42,8 @@ server =
     shorten = undefined
     listUrls = undefined
     deleteAlias = undefined
-    redirect = undefined
+
+redirect :: Text -> Handler (Redirect Text)
+redirect alias = do
+  liftIO $ putStrLn $ "Redirected to " <> show alias
+  pure $ addHeader ("https://" <> alias) "ok"

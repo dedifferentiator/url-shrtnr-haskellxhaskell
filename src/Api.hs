@@ -3,6 +3,7 @@
 
 module Api
   ( Api,
+    Redirect,
   )
 where
 
@@ -18,7 +19,7 @@ type Api =
     :<|> Shorten
     :<|> ListUrls
     :<|> DeleteAlias
-    :<|> Redirect
+    :<|> RedirectAlias
 
 type Signup =
   "users" :> "signup"
@@ -51,8 +52,9 @@ type DeleteAlias =
     :> QueryParam "alias" Text
     :> DeleteNoContent
 
--- REVIEW: Is there a type-safe way to indicate redirection?
-type Redirect =
+type RedirectAlias =
   "r"
     :> Capture "alias" Text
-    :> Get '[JSON] NoContent
+    :> Verb 'GET 303 '[PlainText] (Redirect Text)
+
+type Redirect = Headers '[Header "Location" Text]
