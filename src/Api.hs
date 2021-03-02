@@ -1,45 +1,55 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Api
-  ( Api,
-    Redirect,
-  )
-where
+module Api where
 
 import Data.Text
 import Models
 import Servant
+import Servant.Auth as SA
+import Servant.Auth.Server
 
 -- TODO: JWT authentication
-type Api =
+type Api auths =
   Signup
     :<|> Signin
-    :<|> Signout
-    :<|> Shorten
-    :<|> ListUrls
-    :<|> DeleteAlias
+    :<|> WithAuth auths :> Signout
+    :<|> WithAuth auths :> Shorten
+    :<|> WithAuth auths :> ListUrls
+    :<|> WithAuth auths :> DeleteAlias
     :<|> RedirectAlias
+
+type WithAuth auths =
+  Auth auths User
 
 type Signup =
   "users" :> "signup"
     :> QueryParam "email" Email
     :> QueryParam "password" Password
-    :> PostNoContent
+    :> Post '[JSON] NoContent
 
 type Signin =
   "users" :> "signin"
     :> QueryParam "email" Email
     :> QueryParam "password" Password
-    :> Post '[JSON] JWT
+    :> Verb
+         'POST
+         204
+         '[JSON]
+         ( Headers
+             '[ Header "Set-Cookie" SetCookie,
+                Header "Set-Cookie" SetCookie
+              ]
+             NoContent
+         )
 
 type Signout =
   "users" :> "signout"
-    :> PostNoContent
+    :> Post '[JSON] NoContent
 
 type Shorten =
   "urls" :> "shorten"
-    :> QueryParam "url" Url
+    :> QueryParam "url" Text
     :> QueryParam "alias" Text
     :> Post '[JSON] Text
 
@@ -50,7 +60,7 @@ type ListUrls =
 type DeleteAlias =
   "urls"
     :> QueryParam "alias" Text
-    :> DeleteNoContent
+    :> Delete '[JSON] NoContent
 
 type RedirectAlias =
   "r"

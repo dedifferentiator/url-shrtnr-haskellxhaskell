@@ -1,31 +1,40 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module Models where
 
-import Data.ByteString.Char8 (ByteString)
-import Data.Text
-import Data.Time
+import Data.Aeson
+import Data.Text (Text)
+import GHC.Generics
+import qualified Servant.Auth.Server as SAS
 
 data User = User
   { userEmail :: Email,
-    userHash :: ByteString,
-    userTokens :: [Token]
+    userHash :: PasswordHash
   }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read, Generic)
 
-data Token = Token JWT UTCTime
-  deriving (Show, Eq)
+instance ToJSON User
+
+instance FromJSON User
+
+instance SAS.ToJWT User
+
+instance SAS.FromJWT User
 
 data Alias = Alias
-  { aliasOrigin :: Url,
+  { aliasOrigin :: Text,
     aliasAlias :: Text,
     aliasAuthor :: Email
   }
+  deriving (Show, Eq, Generic)
 
--- REVIEW: Is there a servant type for this?
-type Url = String
+instance ToJSON Alias
 
-type Password = String
+instance FromJSON Alias
 
--- TODO: There definitely is a servant type for this
-type JWT = String
+type Password = Text
+
+type PasswordHash = Text
 
 type Email = Text
