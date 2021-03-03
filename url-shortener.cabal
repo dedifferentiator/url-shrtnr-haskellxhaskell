@@ -38,6 +38,7 @@ library
     , bcrypt
     , binary
     , bytestring
+    , mtl
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -60,6 +61,7 @@ executable url-shortener-exe
     , bcrypt
     , binary
     , bytestring
+    , mtl
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -87,6 +89,7 @@ test-suite url-shortener-test
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , mtl
     , servant-auth
     , servant-auth-server
     , servant-server
