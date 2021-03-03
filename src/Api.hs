@@ -11,7 +11,6 @@ import Servant.Auth.Server
 
 type RequiredParam = QueryParam' '[Required, Strict]
 
--- TODO: JWT authentication
 type Api auths =
   Signup
     :<|> Signin
