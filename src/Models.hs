@@ -1,11 +1,16 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Models where
 
+import Control.Monad.Reader
 import Data.Aeson
 import Data.Text (Text)
 import GHC.Generics
+import Servant
 import qualified Servant.Auth.Server as SAS
 
 data User = User
@@ -38,3 +43,9 @@ type Password = Text
 type PasswordHash = Text
 
 type Email = Text
+
+data AppConfig = AppConfig
+  { appPort :: !Int
+  }
+
+type AppM = ReaderT AppConfig Handler

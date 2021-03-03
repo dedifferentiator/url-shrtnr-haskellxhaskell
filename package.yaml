@@ -30,6 +30,7 @@ dependencies:
 - bytestring
 - binary
 - time
+- mtl
 
 library:
   source-dirs: src
