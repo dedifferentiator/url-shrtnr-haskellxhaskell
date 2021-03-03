@@ -78,33 +78,33 @@ server cs jwts =
     :<|> deleteAlias
     :<|> redirect
 
-signup :: Maybe Email -> Maybe Password -> AppM NoContent
-signup mEmail mPass = undefined
+signup :: Email -> Password -> AppM NoContent
+signup email pass = undefined
 
 signin ::
-  Maybe Email ->
-  Maybe Password ->
+  Email ->
+  Password ->
   AppM
     ( Headers
         '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
         NoContent
     )
-signin mEmail mPass = undefined
+signin email pass = undefined
 
 signout :: SAS.AuthResult User -> AppM NoContent
 signout (SAS.Authenticated user) = undefined
 signout _ = throwError err401
 
-shorten :: SAS.AuthResult User -> Maybe Text -> Maybe Text -> AppM Text
-shorten (SAS.Authenticated user) mLink mAlias = undefined
+shorten :: SAS.AuthResult User -> Text -> Maybe Text -> AppM Text
+shorten (SAS.Authenticated user) link mAlias = undefined
 shorten _ _ _ = throwError err401
 
 listUrls :: SAS.AuthResult User -> AppM [Text]
 listUrls (SAS.Authenticated user) = undefined
 listUrls _ = throwError err401
 
-deleteAlias :: SAS.AuthResult User -> Maybe Text -> AppM NoContent
-deleteAlias (SAS.Authenticated user) mAlias = undefined
+deleteAlias :: SAS.AuthResult User -> Text -> AppM NoContent
+deleteAlias (SAS.Authenticated user) alias = undefined
 deleteAlias _ _ = throwError err401
 
 redirect :: Text -> AppM (Headers '[Header "Location" Text] Text)

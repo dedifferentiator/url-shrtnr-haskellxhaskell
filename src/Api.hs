@@ -9,6 +9,8 @@ import Servant
 import Servant.Auth as SA
 import Servant.Auth.Server
 
+type RequiredParam = QueryParam' '[Required, Strict]
+
 -- TODO: JWT authentication
 type Api auths =
   Signup
@@ -24,14 +26,14 @@ type WithAuth auths =
 
 type Signup =
   "users" :> "signup"
-    :> QueryParam "email" Email
-    :> QueryParam "password" Password
+    :> RequiredParam "email" Email
+    :> RequiredParam "password" Password
     :> Post '[JSON] NoContent
 
 type Signin =
   "users" :> "signin"
-    :> QueryParam "email" Email
-    :> QueryParam "password" Password
+    :> RequiredParam "email" Email
+    :> RequiredParam "password" Password
     :> Verb
          'POST
          204
@@ -49,7 +51,7 @@ type Signout =
 
 type Shorten =
   "urls" :> "shorten"
-    :> QueryParam "url" Text
+    :> RequiredParam "url" Text
     :> QueryParam "alias" Text
     :> Post '[JSON] Text
 
@@ -59,7 +61,7 @@ type ListUrls =
 
 type DeleteAlias =
   "urls"
-    :> QueryParam "alias" Text
+    :> RequiredParam "alias" Text
     :> Delete '[JSON] NoContent
 
 type RedirectAlias =
