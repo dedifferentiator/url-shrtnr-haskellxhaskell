@@ -1,19 +1,28 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module Typeclasses where
 
-import Control.Monad.IO.Class (MonadIO)
-import Data.Text
 import Models
 
-type UserKey = Email
+newtype Key a = Key a
+  deriving (Eq, Show)
 
-type LinkKey = Text
-
-class (MonadIO m) => Database m where
+class (Monad m) => Database m where
   getAllUsers :: m [User]
-  getAllLinks :: m [Link]
+  getAllAliases :: m [Alias]
 
-  addUser :: User -> m Bool
-  removeUser :: UserKey -> m Bool
+  addUser :: User -> m ()
+  lookupUser :: Key User -> m User
+  removeUser :: Key User -> m ()
 
-  addLink :: Link -> m Bool
-  removeLink :: LinkKey -> m Bool
+  addAlias :: Alias -> m ()
+  lookupAlias :: Key Alias -> m Alias
+  removeAlias :: Key Alias -> m ()
+
+class (Monad m) => Logger m where
+  logInfo :: String -> m ()
+  logWarning :: String -> m ()
+  logError :: String -> m ()
