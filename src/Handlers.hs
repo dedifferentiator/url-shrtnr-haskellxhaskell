@@ -7,10 +7,15 @@ module Handlers
 where
 
 import Api
+import Authentication
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
+import Control.Monad.Except
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader
+import Crypto.BCrypt
+import Data.Functor
+import Data.Maybe
 import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -18,6 +23,7 @@ import Models
 import Network.Wai.Handler.Warp
 import Servant
 import Servant.Auth.Server as SAS
+import Typeclasses
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
@@ -79,7 +85,11 @@ server cs jwts =
     :<|> redirect
 
 signup :: Email -> Password -> AppM NoContent
-signup email pass = undefined
+signup email password = do
+  result <- registerUser email password
+  case result of
+    (Right _) -> pure NoContent
+    (Left _) -> throwError err400
 
 signin ::
   Email ->
@@ -109,5 +119,5 @@ deleteAlias _ _ = throwError err401
 
 redirect :: Text -> AppM (Headers '[Header "Location" Text] Text)
 redirect alias = do
-  liftIO $ putStrLn $ "Redirected to " <> show alias
+  logInfo $ "Redirected to " <> show alias
   pure $ addHeader ("https://" <> alias) "ok"
