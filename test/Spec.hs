@@ -8,7 +8,8 @@ module Main (main) where
 import Authentication
 import Control.Exception (evaluate)
 import Control.Monad.State (State)
-import qualified Control.Monad.State.Lazy as State
+import Control.Monad.Reader
+import qualified Control.Monad.State as State
 import Data.List
 import qualified Data.Text as Text
 import Models
@@ -23,14 +24,14 @@ main = hspec $ do
 
 type TestState = ([User], [Alias])
 
-type TestM = State TestState
+type TestM = ReaderT AppConfig (State TestState)
 
 instance Hasher TestM where
   hashPassword = pure . Just
 
 instance Database TestM where
-  getAllUsers = fst <$> State.get
-  getAllAliases = snd <$> State.get
+  getAllUsers = State.gets fst
+  getAllAliases = State.gets snd
 
   addUser user = do
     (users, aliases) <- State.get
@@ -52,11 +53,14 @@ instance Database TestM where
     (users, aliases) <- State.get
     State.put (users, filter (\x -> aliasName x == alias) aliases)
 
-runTest :: TestState -> TestM r -> (r, TestState)
-runTest state m = State.runState m state
+defaultAppConfig :: AppConfig
+defaultAppConfig = AppConfig 3001
+
+runTest :: AppConfig -> TestState -> TestM r -> (r, TestState)
+runTest config state m = State.runState (runReaderT m config) state
 
 runEmptyTest :: TestM r -> (r, TestState)
-runEmptyTest = runTest ([], [])
+runEmptyTest = runTest defaultAppConfig ([], [])
 
 registerUserSpec =
   describe "Authentication.registerUser" $ do
@@ -67,5 +71,5 @@ registerUserSpec =
         `shouldBe` ([User email pass], [])
 
     it "returns an error when the user is already registered" $ do
-      fst (runTest ([User email pass], []) (registerUser email pass))
+      fst (runTest defaultAppConfig ([User email pass], []) (registerUser email pass))
         `shouldBe` Left RegistrationError
