@@ -55,7 +55,7 @@ instance Database TestM where
     State.put (users, filter (\x -> aliasName x == alias) aliases)
 
 defaultAppConfig :: AppConfig
-defaultAppConfig = AppConfig 3001
+defaultAppConfig = AppConfig 3001 ""
 
 runTest :: AppConfig -> TestState -> TestM r -> (r, TestState)
 runTest config state m = State.runState (runReaderT m config) state
