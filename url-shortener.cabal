@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d9f6ea81181b91f2ce28d75f22dff4c77063116cf0cfc6c887288a61f30bd420
+-- hash: ec1b3d02ae6ff3b0a334d9d271c7655b070b9e6976b1065cb8570103bfa390f1
 
 name:           url-shortener
 version:        0.1.0.0
@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Api
+      AppM
       Authentication
       Handlers
       Models

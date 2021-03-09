@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Storage ()
-where
+module Storage where
 
 import Models
 import Typeclasses
@@ -38,7 +37,7 @@ getAllUsersFs :: (MonadReader AppConfig m, MonadIO m) => m [User]
 getAllUsersFs = getAllEntitiesFs "/user"
 addUserFs :: (MonadReader AppConfig m, MonadIO m) => User -> m ()
 addUserFs = addEntityFs userPath userEmail
-lookupUserFs :: (MonadReader AppConfig m, MonadIO m) => Key User -> m User
+lookupUserFs :: (MonadReader AppConfig m, MonadIO m) => Key User -> m (Maybe User)
 lookupUserFs = lookupEntityFs userPath
 removeUserFs :: (MonadReader AppConfig m, MonadIO m) => Key User -> m ()
 removeUserFs = removeEntityFs userPath
@@ -50,8 +49,8 @@ linkPath base alias = base ++ "/link/" ++ alias ++ ".dat"
 getAllAliasesFs :: (MonadReader AppConfig m, MonadIO m) => m [Alias]
 getAllAliasesFs = getAllEntitiesFs "/link"
 addAliasFs :: (MonadReader AppConfig m, MonadIO m) => Alias -> m ()
-addAliasFs = addEntityFs linkPath aliasAlias
-lookupAliasFs :: (MonadReader AppConfig m, MonadIO m) => Key Alias -> m Alias
+addAliasFs = addEntityFs linkPath aliasName
+lookupAliasFs :: (MonadReader AppConfig m, MonadIO m) => Key Alias -> m (Maybe Alias)
 lookupAliasFs = lookupEntityFs linkPath
 removeAliasFs :: (MonadReader AppConfig m, MonadIO m) => Key Alias -> m ()
 removeAliasFs = removeEntityFs linkPath

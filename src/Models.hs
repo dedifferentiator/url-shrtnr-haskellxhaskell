@@ -60,5 +60,3 @@ data AppConfig = AppConfig
 
 data AppError = RegistrationError
   deriving (Show, Eq)
-
-type AppM = ReaderT AppConfig Handler

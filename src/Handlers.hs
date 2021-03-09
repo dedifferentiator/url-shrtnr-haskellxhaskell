@@ -24,6 +24,7 @@ import Network.Wai.Handler.Warp
 import Servant
 import Servant.Auth.Server as SAS
 import Typeclasses
+import AppM
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
