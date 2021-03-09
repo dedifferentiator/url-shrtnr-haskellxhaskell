@@ -77,7 +77,7 @@ startApp = do
 server :: CookieSettings -> JWTSettings -> ServerT (Api auths) AppM
 server cs jwts =
   signup
-    :<|> signin
+    :<|> signin jwts
     :<|> signout
     :<|> shorten
     :<|> listUrls
@@ -92,6 +92,7 @@ signup email password = do
     (Left _) -> throwError err400
 
 signin ::
+  JWTSettings ->
   Email ->
   Password ->
   AppM
@@ -99,7 +100,13 @@ signin ::
         '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
         NoContent
     )
-signin email pass = undefined
+signin jwts email pass = do
+  mUser <- lookupUser email
+  case mUser of
+    Nothing -> throwError err404
+    Just (User uemail uHash) -> do
+      -- valid <- validatePassword
+      undefined
 
 signout :: SAS.AuthResult User -> AppM NoContent
 signout (SAS.Authenticated user) = undefined

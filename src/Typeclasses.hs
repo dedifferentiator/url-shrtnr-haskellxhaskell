@@ -6,9 +6,9 @@
 module Typeclasses where
 
 import Control.Monad.IO.Class
-import Models
-import Crypto.BCrypt
+import qualified Crypto.BCrypt as BCrypt
 import qualified Data.Text.Encoding as Encoding
+import Models
 
 type family Key a where
   Key User = Email
@@ -33,6 +33,7 @@ class (Monad m) => Logger m where
 
 class (Monad m) => Hasher m where
   hashPassword :: Password -> m (Maybe PasswordHash)
+  validatePassword :: PasswordHash -> Password -> m Bool
 
 instance Logger AppM where
   logInfo = liftIO . putStrLn
@@ -54,6 +55,14 @@ instance Hasher AppM where
     let toBytecode = Encoding.encodeUtf8
         fromBytecode = Encoding.decodeUtf8
 
-    mHash <- liftIO $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (toBytecode pass)
+    mHash <-
+      liftIO $
+        BCrypt.hashPasswordUsingPolicy
+          BCrypt.slowerBcryptHashingPolicy
+          (toBytecode pass)
 
     pure $ fromBytecode <$> mHash
+
+  validatePassword pass hash = do
+    let toBytecode = Encoding.encodeUtf8
+    pure $ BCrypt.validatePassword (toBytecode hash) (toBytecode pass)

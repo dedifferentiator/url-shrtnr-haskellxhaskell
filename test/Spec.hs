@@ -28,6 +28,7 @@ type TestM = ReaderT AppConfig (State TestState)
 
 instance Hasher TestM where
   hashPassword = pure . Just
+  validatePassword hash pass = pure (hash == pass)
 
 instance Database TestM where
   getAllUsers = State.gets fst
