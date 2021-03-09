@@ -47,7 +47,7 @@ mkApp cfg cs jwts appConf =
 startApp :: IO ()
 startApp = do
   let port = 3001
-  let appConf = AppConfig port
+  let appConf = AppConfig port ""
   -- TODO: we should persist the key
   myKey <- generateKey
   -- Adding some configurations. All authentications require CookieSettings to

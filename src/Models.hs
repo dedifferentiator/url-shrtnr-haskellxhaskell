@@ -7,6 +7,7 @@
 module Models where
 
 import Control.Monad.Reader
+import Data.Binary (Binary)
 import Data.Aeson
 import Data.Text (Text)
 import GHC.Generics
@@ -18,6 +19,8 @@ data User = User
     userHash :: PasswordHash
   }
   deriving (Show, Eq, Read, Generic)
+
+instance Binary User
 
 instance ToJSON User
 
@@ -34,6 +37,8 @@ data Alias = Alias
   }
   deriving (Show, Eq, Generic)
 
+instance Binary Alias
+
 instance ToJSON Alias
 
 instance FromJSON Alias
@@ -49,7 +54,8 @@ type AliasName = Text
 type AliasOrigin = Text
 
 data AppConfig = AppConfig
-  { appPort :: !Int
+  { appPort :: !Int,
+    appDbPath :: String
   }
 
 data AppError = RegistrationError

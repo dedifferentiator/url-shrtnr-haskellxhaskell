@@ -13,6 +13,7 @@ import Models
 type family Key a where
   Key User = Email
   Key Alias = AliasName
+  Key Alias = Text
 
 class (Monad m) => Database m where
   getAllUsers :: m [User]

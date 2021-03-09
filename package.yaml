@@ -31,6 +31,8 @@ dependencies:
 - binary
 - time
 - mtl
+- directory
+- base32
 
 library:
   source-dirs: src
@@ -62,3 +64,4 @@ tests:
     - hspec-wai
     - hspec-wai-json
     - aeson
+    - temporary
