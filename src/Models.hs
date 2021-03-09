@@ -28,8 +28,8 @@ instance SAS.ToJWT User
 instance SAS.FromJWT User
 
 data Alias = Alias
-  { aliasOrigin :: Text,
-    aliasAlias :: Text,
+  { aliasOrigin :: AliasOrigin,
+    aliasName :: AliasName,
     aliasAuthor :: Email
   }
   deriving (Show, Eq, Generic)
@@ -44,8 +44,15 @@ type PasswordHash = Text
 
 type Email = Text
 
+type AliasName = Text
+
+type AliasOrigin = Text
+
 data AppConfig = AppConfig
   { appPort :: !Int
   }
+
+data AppError = RegistrationError
+  deriving (Show, Eq)
 
 type AppM = ReaderT AppConfig Handler
