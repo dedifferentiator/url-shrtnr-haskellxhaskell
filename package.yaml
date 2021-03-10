@@ -65,3 +65,5 @@ tests:
     - hspec-wai-json
     - aeson
     - temporary
+    - exceptions
+    - monadlist

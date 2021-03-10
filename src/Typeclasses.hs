@@ -5,7 +5,12 @@
 module Typeclasses where
 
 import Control.Monad.IO.Class
+import Control.Exception (Exception)
 import Models
+
+data DatabaseException = AlreadyExists | DoesNotExist deriving (Show, Eq)
+
+instance Exception DatabaseException
 
 type family Key a where
   Key User = Email

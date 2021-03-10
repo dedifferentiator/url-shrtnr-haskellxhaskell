@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ec1b3d02ae6ff3b0a334d9d271c7655b070b9e6976b1065cb8570103bfa390f1
+-- hash: 5c9f4dd3265053694ee62edb1e59b7cd99fc1504db6979aa0f7f4428a9b0cedf
 
 name:           url-shortener
 version:        0.1.0.0
@@ -84,6 +84,7 @@ test-suite url-shortener-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      StorageSpec
       Paths_url_shortener
   hs-source-dirs:
       test
@@ -96,9 +97,11 @@ test-suite url-shortener-test
     , binary
     , bytestring
     , directory
+    , exceptions
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , monadlist
     , mtl
     , servant-auth
     , servant-auth-server

@@ -18,9 +18,19 @@ import Test.Hspec
 -- import Test.Hspec.Wai.JSON
 import Typeclasses
 
+import StorageSpec
+
 main :: IO ()
 main = hspec $ do
   registerUserSpec
+  storageAddAliasSpec
+  storageAddUserSpec
+  storageGetAllAliasesSpec
+  storageGetAllUsersSpec
+  storageLookupAliasSpec
+  storageLookupUserSpec
+  --storageRemoveAliasSpec
+  storageRemoveUserSpec
 
 type TestState = ([User], [Alias])
 
