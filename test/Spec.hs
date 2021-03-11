@@ -15,15 +15,16 @@ import qualified Data.Text as Text
 -- import Test.Hspec.Wai
 -- import Test.Hspec.Wai.JSON
 
-import Urls
 import Models
 import Test.Hspec
 import Typeclasses
+import Urls
 
 main :: IO ()
 main = hspec $ do
   registerUserSpec
   redirectUserSpec
+  signinCheckSpec
 
 type TestState = ([User], [Alias])
 
@@ -77,6 +78,23 @@ registerUserSpec =
     it "returns an error when the user is already registered" $ do
       fst (runTest defaultAppConfig ([User email pass], []) (registerUser email pass))
         `shouldBe` Left RegistrationError
+
+signinCheckSpec =
+  describe "Authentication.signinUser" $ do
+    let email = Text.pack "email"
+        pass = Text.pack "pass"
+    it "return True when the user's credentials are valid" $ do
+      fst (runTest defaultAppConfig ([User email pass], []) (signinCheck email pass))
+        `shouldBe` True
+
+    it "returns False when the user's credentials are invalid" $ do
+      let anotherPass = Text.pack "another_pass"
+      fst (runTest defaultAppConfig ([User email anotherPass], []) (signinCheck email pass))
+        `shouldBe` False
+
+    it "returns False when there are no users with the given email" $ do
+      fst (runEmptyTest (signinCheck email pass))
+        `shouldBe` False
 
 redirectUserSpec =
   describe "Urls.redirectUser" $ do
