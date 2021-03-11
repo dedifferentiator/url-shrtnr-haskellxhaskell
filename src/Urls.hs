@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Urls (annihilateAlias, createAlias, getUrls) where
+module Urls (annihilateAlias, createAlias, getUrls, redirectUser) where
 
 import Control.Monad.Except
 import Control.Monad.IO.Class
