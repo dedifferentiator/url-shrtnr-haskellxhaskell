@@ -4,10 +4,12 @@ module AppM where
 
 import Control.Monad.Reader
 import qualified Crypto.BCrypt as BCrypt
+import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Encoding
 import Models
 import Servant (Handler)
 import Storage
+import qualified System.Random as Random
 import Typeclasses
 
 type AppM = ReaderT AppConfig Handler
