@@ -20,6 +20,9 @@ data User = User
   }
   deriving (Show, Eq, Read, Generic)
 
+instance Ord User where
+    compare x y = compare (userEmail x) (userEmail y)
+
 instance Binary User
 
 instance ToJSON User
@@ -36,6 +39,9 @@ data Alias = Alias
     aliasAuthor :: Email
   }
   deriving (Show, Eq, Generic)
+
+instance Ord Alias where
+    compare x y = compare (aliasName x) (aliasName y)
 
 instance Binary Alias
 

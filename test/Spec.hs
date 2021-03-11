@@ -29,7 +29,7 @@ main = hspec $ do
   storageGetAllUsersSpec
   storageLookupAliasSpec
   storageLookupUserSpec
-  --storageRemoveAliasSpec
+  storageRemoveAliasSpec
   storageRemoveUserSpec
 
 type TestState = ([User], [Alias])

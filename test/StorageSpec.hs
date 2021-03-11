@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import System.IO.Temp
 import Data.Either
 import Test.Hspec
+import Data.List
 
 import Typeclasses
 import Models
@@ -141,7 +142,7 @@ storageAddUserSpec =
                     addUserFs u2
                     addUserFs u1
                     files <- liftIO $ getDirectoryContents (dir ++ "/user")
-                    userFiles <- filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
+                    userFiles <- fmap sort $ filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
                     u1' <- liftIO $ decodeFile (dir ++ "/user/OVZWK4RR.dat")
                     u2' <- liftIO $ decodeFile (dir ++ "/user/OVZWK4RS.dat")
                     pure (userFiles, [u1', u2'])
@@ -171,14 +172,14 @@ storageAddAliasSpec =
                     addAliasFs a2
                     addAliasFs a1
                     files <- liftIO $ getDirectoryContents (dir ++ "/link")
-                    aliasFiles <- filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
+                    aliasFiles <- fmap sort $ filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
                     a1' <- liftIO $ decodeFile (dir ++ "/link/link1.dat")
                     a2' <- liftIO $ decodeFile (dir ++ "/link/link2.dat")
                     pure (aliasFiles, [a1', a2'])
                 ) :: IO (Either SomeException ([FilePath], [Alias]))
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
-                Right res -> res `shouldBe` (["link2.dat", "link1.dat"], [a1, a2])
+                Right res -> res `shouldBe` (["link1.dat", "link2.dat"], [a1, a2])
 
         it "fails to create duplicate files" $ do
             r <- try (withTempAppConfig $ do
@@ -206,7 +207,7 @@ storageGetAllUsersSpec =
                     dir <- asks appDbPath
                     addUserFs u2
                     addUserFs u1
-                    getAllUsersFs
+                    fmap sort getAllUsersFs
                 ) :: IO (Either SomeException [User])
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
@@ -228,9 +229,9 @@ storageGetAllAliasesSpec =
                     dir <- asks appDbPath
                     addAliasFs a2
                     addAliasFs a1
-                    getAllAliasesFs
+                    fmap sort getAllAliasesFs
                 ) :: IO (Either SomeException [Alias])
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
-                Right res -> res `shouldBe` [a2, a1]
+                Right res -> res `shouldBe` [a1, a2]
 
