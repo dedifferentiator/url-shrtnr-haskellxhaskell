@@ -20,11 +20,21 @@ import Test.Hspec
 import Typeclasses
 import Urls
 
+import StorageSpec
+
 main :: IO ()
 main = hspec $ do
   registerUserSpec
   redirectUserSpec
   signinCheckSpec
+  storageAddAliasSpec
+  storageAddUserSpec
+  storageGetAllAliasesSpec
+  storageGetAllUsersSpec
+  storageLookupAliasSpec
+  storageLookupUserSpec
+  storageRemoveAliasSpec
+  storageRemoveUserSpec
 
 type TestState = ([User], [Alias])
 
@@ -40,26 +50,38 @@ instance Database TestM where
 
   addUser user = do
     (users, aliases) <- State.get
+    -- FIXME @arjaz
+    --       This test spec should check if items don't already exist
     State.put (user : users, aliases)
+    pure $ Just ()
   lookupUser email = do
     (users, _) <- State.get
     pure $ find (\x -> userEmail x == email) users
   removeUser email = do
     (users, aliases) <- State.get
+    -- FIXME @arjaz
+    --       This test spec should check if items really exist
     State.put (filter (\x -> userEmail x == email) users, aliases)
+    pure $ Just ()
 
   addAlias alias = do
     (users, aliases) <- State.get
+    -- FIXME @arjaz
+    --       This test spec should check if items don't already exist
     State.put (users, alias : aliases)
+    pure $ Just ()
   lookupAlias alias = do
     (_, aliases) <- State.get
     pure $ find (\x -> aliasName x == alias) aliases
   removeAlias alias = do
     (users, aliases) <- State.get
+    -- FIXME @arjaz
+    --       This test spec should check if items really exist
     State.put (users, filter (\x -> aliasName x == alias) aliases)
+    pure $ Just ()
 
 defaultAppConfig :: AppConfig
-defaultAppConfig = AppConfig 3001
+defaultAppConfig = AppConfig 3001 ""
 
 runTest :: AppConfig -> TestState -> TestM r -> (r, TestState)
 runTest config state m = State.runState (runReaderT m config) state

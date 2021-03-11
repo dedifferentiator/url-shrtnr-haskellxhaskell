@@ -3,6 +3,8 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 5c9f4dd3265053694ee62edb1e59b7cd99fc1504db6979aa0f7f4428a9b0cedf
 
 name:           url-shortener
 version:        0.1.0.0
@@ -24,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Api
+      AppM
       Authentication
       Handlers
       Models
@@ -37,9 +40,11 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , base32
     , bcrypt
     , binary
     , bytestring
+    , directory
     , mtl
     , servant-auth
     , servant-auth-server
@@ -60,9 +65,11 @@ executable url-shortener-exe
   build-depends:
       aeson
     , base
+    , base32
     , bcrypt
     , binary
     , bytestring
+    , directory
     , mtl
     , servant-auth
     , servant-auth-server
@@ -78,6 +85,7 @@ test-suite url-shortener-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      StorageSpec
       Paths_url_shortener
   hs-source-dirs:
       test
@@ -85,16 +93,21 @@ test-suite url-shortener-test
   build-depends:
       aeson
     , base
+    , base32
     , bcrypt
     , binary
     , bytestring
+    , directory
+    , exceptions
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , monadlist
     , mtl
     , servant-auth
     , servant-auth-server
     , servant-server
+    , temporary
     , text
     , time
     , url-shortener
