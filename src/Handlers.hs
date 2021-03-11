@@ -13,7 +13,6 @@ import Control.Monad (forever)
 import Control.Monad.Except
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader
-import Crypto.BCrypt
 import Data.Functor
 import Data.Maybe
 import Data.Proxy
@@ -78,7 +77,7 @@ startApp = do
 server :: CookieSettings -> JWTSettings -> ServerT (Api auths) AppM
 server cs jwts =
   signup
-    :<|> signin jwts
+    :<|> signin cs jwts
     :<|> signout
     :<|> shorten
     :<|> listUrls
@@ -93,6 +92,7 @@ signup email password = do
     (Left _) -> throwError err400
 
 signin ::
+  CookieSettings ->
   JWTSettings ->
   Email ->
   Password ->
@@ -101,13 +101,19 @@ signin ::
         '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
         NoContent
     )
-signin jwts email pass = do
+signin cookies jwts email pass = do
   mUser <- lookupUser email
   case mUser of
     Nothing -> throwError err404
-    Just (User uemail uHash) -> do
-      -- valid <- validatePassword
-      undefined
+    Just user@(User uemail uHash) -> do
+      valid <- validatePassword uHash pass
+      if valid
+        then do
+          mApplyCookies <- liftIO $ acceptLogin cookies jwts user
+          case mApplyCookies of
+            Nothing -> throwError err404
+            Just applyCookies -> pure $ applyCookies NoContent
+        else throwError err404
 
 signout :: SAS.AuthResult User -> AppM NoContent
 signout (SAS.Authenticated user) = undefined
