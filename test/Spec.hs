@@ -27,22 +27,23 @@ import Typeclasses
 import Urls
 
 main :: IO ()
-main = do
-  -- jwtKey <- generateKey
-  -- let port = 3000
-  hspec $ do
-    registerUserSpec
-    redirectUserSpec
-    signinCheckSpec
-    storageAddAliasSpec
-    storageAddUserSpec
-    storageGetAllAliasesSpec
-    storageGetAllUsersSpec
-    storageLookupAliasSpec
-    storageLookupUserSpec
-    storageRemoveAliasSpec
-    storageRemoveUserSpec
-    -- handlersSpec jwtKey port
+main = hspec $ do
+  registerUserSpec
+  annihilateAliasSpec
+  getUrlsSpec
+  createAliasSpec
+  registerUserSpec
+  redirectUserSpec
+  signinCheckSpec
+  storageAddAliasSpec
+  storageAddUserSpec
+  storageGetAllAliasesSpec
+  storageGetAllUsersSpec
+  storageLookupAliasSpec
+  storageLookupUserSpec
+  storageRemoveAliasSpec
+  storageRemoveUserSpec
+  -- handlersSpec jwtKey port
 
 type TestState = ([User], [Alias])
 
@@ -51,6 +52,7 @@ type TestM = ReaderT AppConfig (State TestState)
 instance Hasher TestM where
   hashPassword = pure . Just
   validatePassword hash pass = pure (hash == pass)
+  hashLink = pure
 
 instance Database TestM where
   getAllUsers = State.gets fst
@@ -69,9 +71,9 @@ instance Database TestM where
   removeUser email = do
     (users, aliases) <- State.get
     case find (\x -> userEmail x == email) users of
-      Just _ -> pure Nothing
-      Nothing -> do
-        State.put (filter (\x -> userEmail x == email) users, aliases)
+      Nothing -> pure Nothing
+      Just _ -> do
+        State.put (filter (\x -> userEmail x /= email) users, aliases)
         pure $ Just ()
 
   addAlias alias = do
@@ -87,9 +89,9 @@ instance Database TestM where
   removeAlias alias = do
     (users, aliases) <- State.get
     case find (\x -> aliasName x == alias) aliases of
-      Just _ -> pure Nothing
-      Nothing -> do
-        State.put (users, filter (\x -> aliasName x == alias) aliases)
+      Nothing -> pure Nothing
+      Just _ -> do
+        State.put (users, filter (\x -> aliasName x /= alias) aliases)
         pure $ Just ()
 
 defaultAppConfig :: AppConfig
@@ -113,6 +115,47 @@ registerUserSpec =
       fst (runTest defaultAppConfig ([User email pass], []) (registerUser email pass))
         `shouldBe` Left RegistrationError
 
+annihilateAliasSpec =
+  describe "Urls.annihilateAlias" $ do
+    let name = Text.pack "name"
+        email = Text.pack "email"
+        origin = Text.pack "origin"
+    it "successfully deletes alias" $ do
+      snd (runTest defaultAppConfig ([], [Alias origin name email]) (annihilateAlias name))
+        `shouldBe` ([], [])
+
+    it "returns an error when try to delete unexisted alias" $ do
+      fst (runEmptyTest (annihilateAlias name))
+        `shouldBe` Left DeletingError
+
+getUrlsSpec =
+  describe "Urls.getUrls" $ do
+    let email1 = Text.pack "email1"
+        email2 = Text.pack "email2"
+        origin = Text.pack "origin"
+        name1 = email1
+        name2 = email2
+
+    it "succesfully gets urls from the correct user" $ do
+      fst (runTest defaultAppConfig ([], [Alias origin name1 email1, Alias origin name2 email2]) (getUrls email1))
+        `shouldBe` [name1]
+
+createAliasSpec =
+  describe "Urls.createAlias" $ do
+    let email = Text.pack "email"
+        name = Text.pack "name"
+        origin = Text.pack "origin"
+    it "successfully creates a new alias" $ do
+      snd (runEmptyTest (createAlias origin (Just name) email))
+        `shouldBe` ([], [Alias origin name email])
+
+    it "returns an error when the alias already exists" $ do
+      fst (runTest defaultAppConfig ([], [Alias origin name email]) (createAlias origin (Just name) email))
+        `shouldBe` Left CreatingError
+
+    it "creates and returns new alias when no AliasName is given" $ do
+      runEmptyTest (createAlias origin Nothing email)
+        `shouldBe` (Right origin, ([], [Alias origin origin email]))
 signinCheckSpec =
   describe "Authentication.signinUser" $ do
     let email = Text.pack "email"

@@ -116,16 +116,27 @@ signout ::
 signout cookies (SAS.Authenticated _) = pure $ SAS.clearSession cookies NoContent
 signout _ _ = throwError err401
 
-shorten :: SAS.AuthResult User -> Text -> Maybe Text -> AppM Text
-shorten (SAS.Authenticated user) link mAlias = undefined
+shorten :: SAS.AuthResult User -> AliasOrigin -> Maybe AliasName -> AppM AliasName
+shorten (SAS.Authenticated user) link mAlias = do
+  let email = userEmail user
+  result <- createAlias link mAlias email
+  case result of
+    (Right aName) -> pure aName
+    (Left _) -> throwError err401
 shorten _ _ _ = throwError err401
 
-listUrls :: SAS.AuthResult User -> AppM [Text]
-listUrls (SAS.Authenticated user) = undefined
+listUrls :: SAS.AuthResult User -> AppM [AliasName]
+listUrls (SAS.Authenticated user) = do
+  let email = userEmail user
+  getUrls email
 listUrls _ = throwError err401
 
 deleteAlias :: SAS.AuthResult User -> Text -> AppM NoContent
-deleteAlias (SAS.Authenticated user) alias = undefined
+deleteAlias (SAS.Authenticated user) alias = do
+  result <- annihilateAlias alias
+  case result of
+    (Right _) -> pure NoContent
+    (Left _) -> throwError err401
 deleteAlias _ _ = throwError err401
 
 redirect :: AliasName -> AppM (Headers '[Header "Location" Text] Text)

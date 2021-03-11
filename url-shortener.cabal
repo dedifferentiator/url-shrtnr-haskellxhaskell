@@ -46,6 +46,7 @@ library
     , bytestring
     , directory
     , mtl
+    , random
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -71,6 +72,7 @@ executable url-shortener-exe
     , bytestring
     , directory
     , mtl
+    , random
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -104,6 +106,7 @@ test-suite url-shortener-test
     , hspec-wai-json
     , monadlist
     , mtl
+    , random
     , servant-auth
     , servant-auth-server
     , servant-server

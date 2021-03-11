@@ -2,13 +2,15 @@
 
 module AppM where
 
-import qualified Crypto.BCrypt as BCrypt
-import qualified Data.Text.Encoding as Encoding
 import Control.Monad.Reader
-import Servant (Handler)
-import Typeclasses
-import Storage
+import qualified Crypto.BCrypt as BCrypt
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Encoding
 import Models
+import Servant (Handler)
+import Storage
+import qualified System.Random as Random
+import Typeclasses
 
 type AppM = ReaderT AppConfig Handler
 
@@ -43,3 +45,7 @@ instance Hasher AppM where
   validatePassword pass hash = do
     let toBytecode = Encoding.encodeUtf8
     pure $ BCrypt.validatePassword (toBytecode hash) (toBytecode pass)
+
+  hashLink url = do
+    generator <- liftIO Random.newStdGen
+    pure (Text.pack $ take 7 (Random.randomRs ('a', 'z') generator))

@@ -31,3 +31,4 @@ class (Monad m) => Logger m where
 class (Monad m) => Hasher m where
   hashPassword :: Password -> m (Maybe PasswordHash)
   validatePassword :: PasswordHash -> Password -> m Bool
+  hashLink :: AliasOrigin -> m AliasName

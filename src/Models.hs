@@ -64,5 +64,5 @@ data AppConfig = AppConfig
     appDbPath :: !String
   }
 
-data AppError = RegistrationError
+data AppError = RegistrationError | DeletingError | CreatingError
   deriving (Show, Eq)
