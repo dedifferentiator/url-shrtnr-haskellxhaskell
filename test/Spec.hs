@@ -46,31 +46,35 @@ instance Database TestM where
 
   addUser user = do
     (users, aliases) <- State.get
-    State.put (user : users, aliases)
     -- FIXME @arjaz
     --       This test spec should check if items don't already exist
+    State.put (user : users, aliases)
+    pure $ Just ()
   lookupUser email = do
     (users, _) <- State.get
     pure $ find (\x -> userEmail x == email) users
   removeUser email = do
     (users, aliases) <- State.get
-    State.put (filter (\x -> userEmail x == email) users, aliases)
     -- FIXME @arjaz
     --       This test spec should check if items really exist
+    State.put (filter (\x -> userEmail x == email) users, aliases)
+    pure $ Just ()
 
   addAlias alias = do
     (users, aliases) <- State.get
-    State.put (users, alias : aliases)
     -- FIXME @arjaz
     --       This test spec should check if items don't already exist
+    State.put (users, alias : aliases)
+    pure $ Just ()
   lookupAlias alias = do
     (_, aliases) <- State.get
     pure $ find (\x -> aliasName x == alias) aliases
   removeAlias alias = do
     (users, aliases) <- State.get
-    State.put (users, filter (\x -> aliasName x == alias) aliases)
     -- FIXME @arjaz
     --       This test spec should check if items really exist
+    State.put (users, filter (\x -> aliasName x == alias) aliases)
+    pure $ Just ()
 
 defaultAppConfig :: AppConfig
 defaultAppConfig = AppConfig 3001 ""
