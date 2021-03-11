@@ -55,24 +55,7 @@ startApp = do
   let jwtCfg = defaultJWTSettings myKey
       cookieCfg = defaultCookieSettings
       cfg = cookieCfg :. jwtCfg :. EmptyContext
-  _ <- forkIO $ run port $ mkApp cfg cookieCfg jwtCfg appConf
-
-  putStrLn $ "Started server on localhost:" <> show port
-  putStrLn "Enter name and hash separated by a space for a new token"
-
-  forever $ do
-    xs <- words <$> getLine
-    case xs of
-      [name', hash'] -> do
-        etoken <-
-          makeJWT
-            (User (Text.pack name') (Text.pack hash'))
-            jwtCfg
-            Nothing
-        case etoken of
-          Left e -> putStrLn $ "Error generating token:\t" ++ show e
-          Right v -> putStrLn $ "New token:\t" ++ show v
-      _ -> putStrLn "Expecting a name and password hash separated by spaces"
+  run port $ mkApp cfg cookieCfg jwtCfg appConf
 
 server :: CookieSettings -> JWTSettings -> ServerT (Api auths) AppM
 server cs jwts =
