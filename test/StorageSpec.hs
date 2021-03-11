@@ -33,19 +33,20 @@ storageRemoveUserSpec =
                     dir <- asks appDbPath
                     addUserFs u2
                     addUserFs u1
-                    removeUserFs (Text.pack "user1")
+                    s <- removeUserFs (Text.pack "user1")
                     files <- liftIO $ getDirectoryContents (dir ++ "/user")
-                    filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
-                ) :: IO (Either SomeException [FilePath])
+                    r <- filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
+                    pure (s, r)
+                ) :: IO (Either SomeException (Maybe (), [FilePath]))
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
-                Right res -> res `shouldBe` ["OVZWK4RS.dat"]
+                Right res -> res `shouldBe` (Just (), ["OVZWK4RS.dat"])
 
         it "fails to remove non-existent users" $ do
-            r <- try (withTempAppConfig (removeUserFs (Text.pack "user1"))) :: IO (Either SomeException ())
+            r <- try (withTempAppConfig (removeUserFs (Text.pack "user1"))) :: IO (Either SomeException (Maybe ()))
             case r of
-                Left err -> fromException err `shouldBe` Just DoesNotExist
-                Right res -> expectationFailure "Did not report error"
+                Left err -> expectationFailure ("Failure: " ++ (show err))
+                Right res -> res `shouldBe` Nothing
 
 storageRemoveAliasSpec =
     describe "Storage.removeAliasFs" $ do
@@ -57,19 +58,20 @@ storageRemoveAliasSpec =
                     dir <- asks appDbPath
                     addAliasFs a2
                     addAliasFs a1
-                    removeAliasFs (Text.pack "link1")
+                    s <- removeAliasFs (Text.pack "link1")
                     files <- liftIO $ getDirectoryContents (dir ++ "/link")
-                    filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
-                ) :: IO (Either SomeException [FilePath])
+                    r <- filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
+                    pure (s, r)
+                ) :: IO (Either SomeException (Maybe (), [FilePath]))
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
-                Right res -> res `shouldBe` ["link2.dat"]
+                Right res -> res `shouldBe` (Just (), ["link2.dat"])
 
         it "fails to remove non-existent aliases" $ do
-            r <- try (withTempAppConfig (removeAliasFs (Text.pack "link1"))) :: IO (Either SomeException ())
+            r <- try (withTempAppConfig (removeAliasFs (Text.pack "link1"))) :: IO (Either SomeException (Maybe ()))
             case r of
-                Left err -> fromException err `shouldBe` Just DoesNotExist
-                Right res -> expectationFailure "Did not report error"
+                Left err -> expectationFailure ("Failure: " ++ (show err))
+                Right res -> res `shouldBe` Nothing
 
 storageLookupUserSpec =
     describe "Storage.lookupUserFs" $ do
@@ -139,27 +141,28 @@ storageAddUserSpec =
         it "creates user files" $ do
             r <- try (withTempAppConfig $ do
                     dir <- asks appDbPath
-                    addUserFs u2
-                    addUserFs u1
+                    s1 <- addUserFs u2
+                    s2 <- addUserFs u1
                     files <- liftIO $ getDirectoryContents (dir ++ "/user")
                     userFiles <- fmap sort $ filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
                     u1' <- liftIO $ decodeFile (dir ++ "/user/OVZWK4RR.dat")
                     u2' <- liftIO $ decodeFile (dir ++ "/user/OVZWK4RS.dat")
-                    pure (userFiles, [u1', u2'])
-                ) :: IO (Either SomeException ([FilePath], [User]))
+                    pure ([s1, s2], userFiles, [u1', u2'])
+                ) :: IO (Either SomeException ([Maybe ()], [FilePath], [User]))
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
-                Right res -> res `shouldBe` (["OVZWK4RR.dat", "OVZWK4RS.dat"], [u1, u2])
+                Right res -> res `shouldBe` ([Just (), Just ()], ["OVZWK4RR.dat", "OVZWK4RS.dat"], [u1, u2])
 
         it "fails to create duplicate files" $ do
             r <- try (withTempAppConfig $ do
                     dir <- asks appDbPath
-                    addUserFs u1
-                    addUserFs u1
-                ) :: IO (Either SomeException ())
+                    s1 <- addUserFs u1
+                    s2 <- addUserFs u1
+                    pure [s1, s2]
+                ) :: IO (Either SomeException [Maybe ()])
             case r of
-                Left err -> fromException err `shouldBe` Just AlreadyExists
-                Right res -> expectationFailure "Did not report error"
+                Left err -> expectationFailure ("Failure: " ++ (show err))
+                Right res -> res `shouldBe` [Just (), Nothing]
 
 storageAddAliasSpec =
     describe "Storage.addAliasFs" $ do
@@ -169,27 +172,28 @@ storageAddAliasSpec =
         it "creates alias files" $ do
             r <- try (withTempAppConfig $ do
                     dir <- asks appDbPath
-                    addAliasFs a2
-                    addAliasFs a1
+                    s1 <- addAliasFs a2
+                    s2 <- addAliasFs a1
                     files <- liftIO $ getDirectoryContents (dir ++ "/link")
                     aliasFiles <- fmap sort $ filterM (\d -> pure $ not $ d `elem` [".", ".."]) files
                     a1' <- liftIO $ decodeFile (dir ++ "/link/link1.dat")
                     a2' <- liftIO $ decodeFile (dir ++ "/link/link2.dat")
-                    pure (aliasFiles, [a1', a2'])
-                ) :: IO (Either SomeException ([FilePath], [Alias]))
+                    pure ([s1, s2], aliasFiles, [a1', a2'])
+                ) :: IO (Either SomeException ([Maybe ()], [FilePath], [Alias]))
             case r of
                 Left err -> expectationFailure ("Failure: " ++ (show err))
-                Right res -> res `shouldBe` (["link1.dat", "link2.dat"], [a1, a2])
+                Right res -> res `shouldBe` ([Just (), Just ()], ["link1.dat", "link2.dat"], [a1, a2])
 
         it "fails to create duplicate files" $ do
             r <- try (withTempAppConfig $ do
                     dir <- asks appDbPath
-                    addAliasFs a1
-                    addAliasFs a1
-                ) :: IO (Either SomeException ())
+                    s1 <- addAliasFs a1
+                    s2 <- addAliasFs a1
+                    pure [s1, s2]
+                ) :: IO (Either SomeException [Maybe ()])
             case r of
-                Left err -> fromException err `shouldBe` Just AlreadyExists
-                Right res -> expectationFailure "Did not report error"
+                Left err -> expectationFailure ("Failure: " ++ (show err))
+                Right res -> res `shouldBe` [Just (), Nothing]
 
 storageGetAllUsersSpec =
     describe "Storage.getAllUsersFs" $ do

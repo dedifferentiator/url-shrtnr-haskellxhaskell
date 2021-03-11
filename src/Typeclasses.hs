@@ -5,12 +5,7 @@
 module Typeclasses where
 
 import Control.Monad.IO.Class
-import Control.Exception (Exception)
 import Models
-
-data DatabaseException = AlreadyExists | DoesNotExist deriving (Show, Eq)
-
-instance Exception DatabaseException
 
 type family Key a where
   Key User = Email
@@ -20,13 +15,13 @@ class (Monad m) => Database m where
   getAllUsers :: m [User]
   getAllAliases :: m [Alias]
 
-  addUser :: User -> m ()
+  addUser :: User -> m (Maybe ())
   lookupUser :: Key User -> m (Maybe User)
-  removeUser :: Key User -> m ()
+  removeUser :: Key User -> m (Maybe ())
 
-  addAlias :: Alias -> m ()
+  addAlias :: Alias -> m (Maybe ())
   lookupAlias :: Key Alias -> m (Maybe Alias)
-  removeAlias :: Key Alias -> m ()
+  removeAlias :: Key Alias -> m (Maybe ())
 
 class (Monad m) => Logger m where
   logInfo :: String -> m ()

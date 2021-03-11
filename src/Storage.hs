@@ -23,16 +23,20 @@ addEntityFs pathFunc keyFunc entity = do
     let entityPath = pathFunc dbPath $ (T.unpack . keyFunc) entity
     exists <- liftIO $ doesFileExist entityPath
     if exists
-        then liftIO $ throw AlreadyExists
-        else liftIO $ encodeFile entityPath entity
+        then pure Nothing
+        else do
+            liftIO $ encodeFile entityPath entity
+            pure $ Just ()
 
 removeEntityFs pathFunc key = do
     dbPath <- asks appDbPath
     let entityPath = pathFunc dbPath $ T.unpack key
     exists <- liftIO $ doesFileExist entityPath
     if exists
-        then liftIO $ removeFile entityPath
-        else liftIO $ throw DoesNotExist
+        then do
+            liftIO $ removeFile entityPath
+            pure $ Just ()
+        else pure Nothing
 
 lookupEntityFs pathFunc decoder key = do
     dbPath <- asks appDbPath
@@ -55,11 +59,11 @@ userPath base email = base ++ "/user/" ++ ((T.unpack . encodeBase32 . T.pack) em
 
 getAllUsersFs :: (MonadReader AppConfig m, MonadIO m) => m [User]
 getAllUsersFs = getAllEntitiesFs "/user"
-addUserFs :: (MonadReader AppConfig m, MonadIO m) => User -> m ()
+addUserFs :: (MonadReader AppConfig m, MonadIO m) => User -> m (Maybe ())
 addUserFs = addEntityFs userPath userEmail
 lookupUserFs :: (MonadReader AppConfig m, MonadIO m) => Key User -> m (Maybe User)
 lookupUserFs = lookupEntityFs userPath (decodeFile :: FilePath -> IO User)
-removeUserFs :: (MonadReader AppConfig m, MonadIO m) => Key User -> m ()
+removeUserFs :: (MonadReader AppConfig m, MonadIO m) => Key User -> m (Maybe ())
 removeUserFs = removeEntityFs userPath
 
 -- Aliases
@@ -68,9 +72,9 @@ linkPath base alias = base ++ "/link/" ++ alias ++ ".dat"
 
 getAllAliasesFs :: (MonadReader AppConfig m, MonadIO m) => m [Alias]
 getAllAliasesFs = getAllEntitiesFs "/link"
-addAliasFs :: (MonadReader AppConfig m, MonadIO m) => Alias -> m ()
+addAliasFs :: (MonadReader AppConfig m, MonadIO m) => Alias -> m (Maybe ())
 addAliasFs = addEntityFs linkPath aliasName
 lookupAliasFs :: (MonadReader AppConfig m, MonadIO m) => Key Alias -> m (Maybe Alias)
 lookupAliasFs = lookupEntityFs linkPath (decodeFile :: FilePath -> IO Alias)
-removeAliasFs :: (MonadReader AppConfig m, MonadIO m) => Key Alias -> m ()
+removeAliasFs :: (MonadReader AppConfig m, MonadIO m) => Key Alias -> m (Maybe ())
 removeAliasFs = removeEntityFs linkPath
