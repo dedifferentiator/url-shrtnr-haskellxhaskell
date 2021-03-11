@@ -52,7 +52,7 @@ data AppConfig = AppConfig
   { appPort :: !Int
   }
 
-data AppError = RegistrationError
+data AppError = RegistrationError | DeletingError | CreatingError
   deriving (Show, Eq)
 
 type AppM = ReaderT AppConfig Handler

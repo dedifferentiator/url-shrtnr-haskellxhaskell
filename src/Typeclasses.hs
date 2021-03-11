@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -7,8 +8,10 @@ module Typeclasses where
 
 import Control.Monad.IO.Class
 import qualified Crypto.BCrypt as BCrypt
+import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Encoding
 import Models
+import qualified System.Random as Random
 
 type family Key a where
   Key User = Email
@@ -34,6 +37,7 @@ class (Monad m) => Logger m where
 class (Monad m) => Hasher m where
   hashPassword :: Password -> m (Maybe PasswordHash)
   validatePassword :: PasswordHash -> Password -> m Bool
+  hashLink :: AliasOrigin -> m AliasName
 
 instance Logger AppM where
   logInfo = liftIO . putStrLn
@@ -66,3 +70,7 @@ instance Hasher AppM where
   validatePassword pass hash = do
     let toBytecode = Encoding.encodeUtf8
     pure $ BCrypt.validatePassword (toBytecode hash) (toBytecode pass)
+
+  hashLink url = do
+    generator <- liftIO Random.newStdGen
+    pure (Text.pack $ take 7 (Random.randomRs ('a', 'z') generator))
