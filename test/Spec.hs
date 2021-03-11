@@ -7,20 +7,23 @@ module Main (main) where
 
 import Authentication
 import Control.Exception (evaluate)
-import Control.Monad.State (State)
 import Control.Monad.Reader
+import Control.Monad.State (State)
 import qualified Control.Monad.State as State
 import Data.List
 import qualified Data.Text as Text
-import Models
-import Test.Hspec
 -- import Test.Hspec.Wai
 -- import Test.Hspec.Wai.JSON
+
+import Handlers
+import Models
+import Test.Hspec
 import Typeclasses
 
 main :: IO ()
 main = hspec $ do
   registerUserSpec
+  redirectUserSpec
 
 type TestState = ([User], [Alias])
 
@@ -74,3 +77,15 @@ registerUserSpec =
     it "returns an error when the user is already registered" $ do
       fst (runTest defaultAppConfig ([User email pass], []) (registerUser email pass))
         `shouldBe` Left RegistrationError
+
+redirectUserSpec =
+  describe "redirectUser" $ do
+    let aName = Text.pack "alias"
+        aOrigin = Text.pack "https://google.com"
+        aUser = Text.pack "email"
+    it "returns Nothing when the user requested nonexistent alias" $ do
+      fst (runEmptyTest (redirectUser aName))
+        `shouldBe` Nothing
+    it "returns Just url when the user requested a valid alias" $
+      fst (runTest defaultAppConfig ([], [Alias aOrigin aName aUser]) (redirectUser aName))
+        `shouldBe` Just aOrigin

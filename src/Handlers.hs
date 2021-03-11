@@ -3,6 +3,7 @@
 
 module Handlers
   ( startApp,
+    redirectUser
   )
 where
 
@@ -124,7 +125,13 @@ deleteAlias :: SAS.AuthResult User -> Text -> AppM NoContent
 deleteAlias (SAS.Authenticated user) alias = undefined
 deleteAlias _ _ = throwError err401
 
-redirect :: Text -> AppM (Headers '[Header "Location" Text] Text)
+redirect :: AliasName -> AppM (Headers '[Header "Location" Text] Text)
 redirect alias = do
-  logInfo $ "Redirected to " <> show alias
-  pure $ addHeader ("https://" <> alias) "ok"
+  mAlias <- redirectUser alias
+  case mAlias of
+    Just url -> pure $ addHeader url "ok"
+    Nothing -> throwError err404
+
+-- TODO: move that to Urls/Links/whatever after the module's created
+redirectUser :: (Database m) => AliasName -> m (Maybe AliasOrigin)
+redirectUser alias = fmap (fmap aliasOrigin) (lookupAlias alias)
