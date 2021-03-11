@@ -54,3 +54,6 @@ getUrls ::
 getUrls email = do
   aList <- getAllAliases
   pure $ map aliasName (filter (\x -> aliasAuthor x == email) aList)
+
+redirectUser :: (Database m) => AliasName -> m (Maybe AliasOrigin)
+redirectUser alias = (fmap aliasOrigin) <$> (lookupAlias alias)

@@ -3,17 +3,18 @@
 
 module Handlers
   ( startApp,
+    mkApp,
   )
 where
 
 import Api
+import AppM
 import Authentication
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
 import Control.Monad.Except
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader
-import Crypto.BCrypt
 import Data.Functor
 import Data.Maybe
 import Data.Proxy
@@ -25,6 +26,8 @@ import Servant
 import Servant.Auth.Server as SAS
 import Typeclasses
 import Urls
+import System.Environment
+import System.Directory
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
@@ -47,8 +50,14 @@ mkApp cfg cs jwts appConf =
 
 startApp :: IO ()
 startApp = do
+  appDbPath <- getEnv "appDbPath"
+  let userPath = appDbPath <> "/user"
+      aliasPath = appDbPath <> "/alias"
+  createDirectoryIfMissing True userPath
+  createDirectoryIfMissing True aliasPath
+
   let port = 3001
-  let appConf = AppConfig port
+  let appConf = AppConfig port appDbPath
   -- TODO: we should persist the key
   myKey <- generateKey
   -- Adding some configurations. All authentications require CookieSettings to
@@ -56,30 +65,13 @@ startApp = do
   let jwtCfg = defaultJWTSettings myKey
       cookieCfg = defaultCookieSettings
       cfg = cookieCfg :. jwtCfg :. EmptyContext
-  _ <- forkIO $ run port $ mkApp cfg cookieCfg jwtCfg appConf
-
-  putStrLn $ "Started server on localhost:" <> show port
-  putStrLn "Enter name and hash separated by a space for a new token"
-
-  forever $ do
-    xs <- words <$> getLine
-    case xs of
-      [name', hash'] -> do
-        etoken <-
-          makeJWT
-            (User (Text.pack name') (Text.pack hash'))
-            jwtCfg
-            Nothing
-        case etoken of
-          Left e -> putStrLn $ "Error generating token:\t" ++ show e
-          Right v -> putStrLn $ "New token:\t" ++ show v
-      _ -> putStrLn "Expecting a name and password hash separated by spaces"
+  run port $ mkApp cfg cookieCfg jwtCfg appConf
 
 server :: CookieSettings -> JWTSettings -> ServerT (Api auths) AppM
 server cs jwts =
   signup
-    :<|> signin jwts
-    :<|> signout
+    :<|> signin cs jwts
+    :<|> signout cs
     :<|> shorten
     :<|> listUrls
     :<|> deleteAlias
@@ -87,12 +79,14 @@ server cs jwts =
 
 signup :: Email -> Password -> AppM NoContent
 signup email password = do
+  logInfo $ "Signing up email " ++ show email
   result <- registerUser email password
   case result of
     (Right _) -> pure NoContent
     (Left _) -> throwError err400
 
 signin ::
+  CookieSettings ->
   JWTSettings ->
   Email ->
   Password ->
@@ -101,17 +95,26 @@ signin ::
         '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
         NoContent
     )
-signin jwts email pass = do
-  mUser <- lookupUser email
-  case mUser of
-    Nothing -> throwError err404
-    Just (User uemail uHash) -> do
-      -- valid <- validatePassword
-      undefined
+signin cookies jwts email pass = do
+  valid <- signinCheck email pass
+  if valid
+    then do
+      mApplyCookies <- liftIO $ acceptLogin cookies jwts (User email pass)
+      case mApplyCookies of
+        Nothing -> throwError err404
+        Just applyCookies -> pure $ applyCookies NoContent
+    else throwError err404
 
-signout :: SAS.AuthResult User -> AppM NoContent
-signout (SAS.Authenticated user) = undefined
-signout _ = throwError err401
+signout ::
+  CookieSettings ->
+  SAS.AuthResult User ->
+  AppM
+    ( Headers
+        '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
+        NoContent
+    )
+signout cookies (SAS.Authenticated _) = pure $ SAS.clearSession cookies NoContent
+signout _ _ = throwError err401
 
 shorten :: SAS.AuthResult User -> AliasOrigin -> Maybe AliasName -> AppM AliasName
 shorten (SAS.Authenticated user) link mAlias = do
@@ -136,7 +139,9 @@ deleteAlias (SAS.Authenticated user) alias = do
     (Left _) -> throwError err401
 deleteAlias _ _ = throwError err401
 
-redirect :: Text -> AppM (Headers '[Header "Location" Text] Text)
+redirect :: AliasName -> AppM (Headers '[Header "Location" Text] Text)
 redirect alias = do
-  logInfo $ "Redirected to " <> show alias
-  pure $ addHeader ("https://" <> alias) "ok"
+  mAlias <- redirectUser alias
+  case mAlias of
+    Just url -> pure $ addHeader url "ok"
+    Nothing -> throwError err404

@@ -18,21 +18,22 @@ extra-source-files:
 description: Please see the README on GitHub at <https://github.com/future-stardust/url-shrtnr-haskellxhaskell>
 
 dependencies:
-  - base >= 4.7 && < 5
-  - base32
-  - random
-  - aeson
-  - servant-server
-  - servant-auth
-  - servant-auth-server
-  - wai
-  - warp
-  - text
-  - bcrypt
-  - bytestring
-  - binary
-  - time
-  - mtl
+- base >= 4.7 && < 5
+- aeson
+- servant-server
+- servant-auth
+- servant-auth-server
+- wai
+- warp
+- text
+- bcrypt
+- bytestring
+- binary
+- time
+- mtl
+- directory
+- base32
+- random
 
 library:
   source-dirs: src
@@ -58,9 +59,12 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - base
-      - url-shortener
-      - hspec
-      - hspec-wai
-      - hspec-wai-json
-      - aeson
+    - base
+    - url-shortener
+    - hspec
+    - hspec-wai
+    - hspec-wai-json
+    - aeson
+    - temporary
+    - exceptions
+    - monadlist
