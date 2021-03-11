@@ -78,7 +78,7 @@ server :: CookieSettings -> JWTSettings -> ServerT (Api auths) AppM
 server cs jwts =
   signup
     :<|> signin cs jwts
-    :<|> signout
+    :<|> signout cs
     :<|> shorten
     :<|> listUrls
     :<|> deleteAlias
@@ -115,9 +115,16 @@ signin cookies jwts email pass = do
             Just applyCookies -> pure $ applyCookies NoContent
         else throwError err404
 
-signout :: SAS.AuthResult User -> AppM NoContent
-signout (SAS.Authenticated user) = undefined
-signout _ = throwError err401
+signout ::
+  CookieSettings ->
+  SAS.AuthResult User ->
+  AppM
+    ( Headers
+        '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
+        NoContent
+    )
+signout cookies (SAS.Authenticated user) = pure $ SAS.clearSession cookies NoContent
+signout _ _ = throwError err401
 
 shorten :: SAS.AuthResult User -> Text -> Maybe Text -> AppM Text
 shorten (SAS.Authenticated user) link mAlias = undefined
