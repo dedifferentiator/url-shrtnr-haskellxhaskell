@@ -24,6 +24,7 @@ import Network.Wai.Handler.Warp
 import Servant
 import Servant.Auth.Server as SAS
 import Typeclasses
+import AppM
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
@@ -47,7 +48,7 @@ mkApp cfg cs jwts appConf =
 startApp :: IO ()
 startApp = do
   let port = 3001
-  let appConf = AppConfig port
+  let appConf = AppConfig port ""
   -- TODO: we should persist the key
   myKey <- generateKey
   -- Adding some configurations. All authentications require CookieSettings to
