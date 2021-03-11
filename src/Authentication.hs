@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module Authentication (registerUser) where
+module Authentication (registerUser, signinCheck) where
 
 import Control.Monad.Except
 import Control.Monad.IO.Class
@@ -29,3 +29,10 @@ registerUser email password = do
         Just hash -> do
           addUser (User email hash)
           pure (Right ())
+
+signinCheck :: (Database m, Hasher m) => Email -> Password -> m Bool
+signinCheck email pass = do
+  mUser <- lookupUser email
+  case mUser of
+    Just (User _ uhash) -> validatePassword uhash pass
+    Nothing -> pure False

@@ -7,22 +7,26 @@ module Main (main) where
 
 import Authentication
 import Control.Exception (evaluate)
-import Control.Monad.State (State)
 import Control.Monad.Reader
+import Control.Monad.State (State)
 import qualified Control.Monad.State as State
 import Data.List
 import qualified Data.Text as Text
-import Models
-import Test.Hspec
 -- import Test.Hspec.Wai
 -- import Test.Hspec.Wai.JSON
+
+import Models
+import Test.Hspec
 import Typeclasses
+import Urls
 
 import StorageSpec
 
 main :: IO ()
 main = hspec $ do
   registerUserSpec
+  redirectUserSpec
+  signinCheckSpec
   storageAddAliasSpec
   storageAddUserSpec
   storageGetAllAliasesSpec
@@ -96,3 +100,32 @@ registerUserSpec =
     it "returns an error when the user is already registered" $ do
       fst (runTest defaultAppConfig ([User email pass], []) (registerUser email pass))
         `shouldBe` Left RegistrationError
+
+signinCheckSpec =
+  describe "Authentication.signinUser" $ do
+    let email = Text.pack "email"
+        pass = Text.pack "pass"
+    it "return True when the user's credentials are valid" $ do
+      fst (runTest defaultAppConfig ([User email pass], []) (signinCheck email pass))
+        `shouldBe` True
+
+    it "returns False when the user's credentials are invalid" $ do
+      let anotherPass = Text.pack "another_pass"
+      fst (runTest defaultAppConfig ([User email anotherPass], []) (signinCheck email pass))
+        `shouldBe` False
+
+    it "returns False when there are no users with the given email" $ do
+      fst (runEmptyTest (signinCheck email pass))
+        `shouldBe` False
+
+redirectUserSpec =
+  describe "Urls.redirectUser" $ do
+    let aName = Text.pack "alias"
+        aOrigin = Text.pack "https://google.com"
+        aUser = Text.pack "email"
+    it "returns Nothing when the user requested nonexistent alias" $ do
+      fst (runEmptyTest (redirectUser aName))
+        `shouldBe` Nothing
+    it "returns Just url when the user requested a valid alias" $
+      fst (runTest defaultAppConfig ([], [Alias aOrigin aName aUser]) (redirectUser aName))
+        `shouldBe` Just aOrigin

@@ -46,7 +46,16 @@ type Signin =
 
 type Signout =
   "users" :> "signout"
-    :> Post '[JSON] NoContent
+    :> Verb
+      'POST
+      204
+      '[JSON]
+      ( Headers
+        '[ Header "Set-Cookie" SetCookie,
+           Header "Set-Cookie" SetCookie
+         ]
+        NoContent
+      )
 
 type Shorten =
   "urls" :> "shorten"
