@@ -71,8 +71,8 @@ instance Database TestM where
   removeUser email = do
     (users, aliases) <- State.get
     case find (\x -> userEmail x == email) users of
-      Just _ -> pure Nothing
-      Nothing -> do
+      Nothing -> pure Nothing
+      Just _ -> do
         State.put (filter (\x -> userEmail x /= email) users, aliases)
         pure $ Just ()
 
@@ -89,8 +89,8 @@ instance Database TestM where
   removeAlias alias = do
     (users, aliases) <- State.get
     case find (\x -> aliasName x == alias) aliases of
-      Just _ -> pure Nothing
-      Nothing -> do
+      Nothing -> pure Nothing
+      Just _ -> do
         State.put (users, filter (\x -> aliasName x /= alias) aliases)
         pure $ Just ()
 
