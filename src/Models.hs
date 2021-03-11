@@ -61,7 +61,7 @@ type AliasOrigin = Text
 
 data AppConfig = AppConfig
   { appPort :: !Int,
-    appDbPath :: String
+    appDbPath :: !String
   }
 
 data AppError = RegistrationError
