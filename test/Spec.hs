@@ -12,29 +12,37 @@ import Control.Monad.State (State)
 import qualified Control.Monad.State as State
 import Data.List
 import qualified Data.Text as Text
--- import Test.Hspec.Wai
--- import Test.Hspec.Wai.JSON
-
+import Handlers
 import Models
+import Network.Wai.Handler.Warp
+import Servant
+import Servant.Auth.Server
+import StorageSpec
+import System.Directory
+import System.IO.Temp
 import Test.Hspec
+import Test.Hspec.Wai
+import Test.Hspec.Wai.JSON
 import Typeclasses
 import Urls
 
-import StorageSpec
-
 main :: IO ()
-main = hspec $ do
-  registerUserSpec
-  redirectUserSpec
-  signinCheckSpec
-  storageAddAliasSpec
-  storageAddUserSpec
-  storageGetAllAliasesSpec
-  storageGetAllUsersSpec
-  storageLookupAliasSpec
-  storageLookupUserSpec
-  storageRemoveAliasSpec
-  storageRemoveUserSpec
+main = do
+  -- jwtKey <- generateKey
+  -- let port = 3000
+  hspec $ do
+    registerUserSpec
+    redirectUserSpec
+    signinCheckSpec
+    storageAddAliasSpec
+    storageAddUserSpec
+    storageGetAllAliasesSpec
+    storageGetAllUsersSpec
+    storageLookupAliasSpec
+    storageLookupUserSpec
+    storageRemoveAliasSpec
+    storageRemoveUserSpec
+    -- handlersSpec jwtKey port
 
 type TestState = ([User], [Alias])
 
@@ -50,35 +58,39 @@ instance Database TestM where
 
   addUser user = do
     (users, aliases) <- State.get
-    -- FIXME @arjaz
-    --       This test spec should check if items don't already exist
-    State.put (user : users, aliases)
-    pure $ Just ()
+    case find (\x -> userEmail x == userEmail user) users of
+      Just _ -> pure Nothing
+      Nothing -> do
+        State.put (user : users, aliases)
+        pure $ Just ()
   lookupUser email = do
     (users, _) <- State.get
     pure $ find (\x -> userEmail x == email) users
   removeUser email = do
     (users, aliases) <- State.get
-    -- FIXME @arjaz
-    --       This test spec should check if items really exist
-    State.put (filter (\x -> userEmail x == email) users, aliases)
-    pure $ Just ()
+    case find (\x -> userEmail x == email) users of
+      Just _ -> pure Nothing
+      Nothing -> do
+        State.put (filter (\x -> userEmail x == email) users, aliases)
+        pure $ Just ()
 
   addAlias alias = do
     (users, aliases) <- State.get
-    -- FIXME @arjaz
-    --       This test spec should check if items don't already exist
-    State.put (users, alias : aliases)
-    pure $ Just ()
+    case find (\x -> aliasName x == aliasName alias) aliases of
+      Just _ -> pure Nothing
+      Nothing -> do
+        State.put (users, alias : aliases)
+        pure $ Just ()
   lookupAlias alias = do
     (_, aliases) <- State.get
     pure $ find (\x -> aliasName x == alias) aliases
   removeAlias alias = do
     (users, aliases) <- State.get
-    -- FIXME @arjaz
-    --       This test spec should check if items really exist
-    State.put (users, filter (\x -> aliasName x == alias) aliases)
-    pure $ Just ()
+    case find (\x -> aliasName x == alias) aliases of
+      Just _ -> pure Nothing
+      Nothing -> do
+        State.put (users, filter (\x -> aliasName x == alias) aliases)
+        pure $ Just ()
 
 defaultAppConfig :: AppConfig
 defaultAppConfig = AppConfig 3001 ""
@@ -105,7 +117,7 @@ signinCheckSpec =
   describe "Authentication.signinUser" $ do
     let email = Text.pack "email"
         pass = Text.pack "pass"
-    it "return True when the user's credentials are valid" $ do
+    it "returns True when the user's credentials are valid" $ do
       fst (runTest defaultAppConfig ([User email pass], []) (signinCheck email pass))
         `shouldBe` True
 
@@ -129,3 +141,24 @@ redirectUserSpec =
     it "returns Just url when the user requested a valid alias" $
       fst (runTest defaultAppConfig ([], [Alias aOrigin aName aUser]) (redirectUser aName))
         `shouldBe` Just aOrigin
+
+-- handlersSpec jwtKey port = with (pure app) $ do
+--   describe "POST /users/signup" $ do
+--     it "responds with 400 when the request is malformed" $ do
+--       withTempDirectory "/tmp" "hspec." $ \dir -> do
+--         with (pure $ app dir) $ do
+--           post "/users/signup" "" `shouldRespondWith` 400
+--     -- it "responds with 201" $ do
+--     --   withTempDirectory "/tmp" "hspec." $ \dir -> do
+--     --     with (pure $ app dir) $ do
+--     --       createDirectory (dir ++ "/link")
+--     --       createDirectory (dir ++ "/user")
+--     --       post "/users/signup?email=hello@tempmail.com&password=12345" "" `shouldRespondWith` 201
+--   where
+--     jwtCfg = defaultJWTSettings jwtKey
+--     cookieCfg = defaultCookieSettings
+--     cfg = cookieCfg :. jwtCfg :. EmptyContext
+--     app dir = do
+--       liftIO $ createDirectory (dir ++ "/link")
+--       liftIO $ createDirectory (dir ++ "/user")
+--       mkApp cfg cookieCfg jwtCfg (AppConfig port dir)
