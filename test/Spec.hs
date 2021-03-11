@@ -15,7 +15,7 @@ import qualified Data.Text as Text
 -- import Test.Hspec.Wai
 -- import Test.Hspec.Wai.JSON
 
-import Handlers
+import Urls
 import Models
 import Test.Hspec
 import Typeclasses
@@ -79,7 +79,7 @@ registerUserSpec =
         `shouldBe` Left RegistrationError
 
 redirectUserSpec =
-  describe "redirectUser" $ do
+  describe "Urls.redirectUser" $ do
     let aName = Text.pack "alias"
         aOrigin = Text.pack "https://google.com"
         aUser = Text.pack "email"

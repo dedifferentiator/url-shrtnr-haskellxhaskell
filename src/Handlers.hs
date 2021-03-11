@@ -3,7 +3,6 @@
 
 module Handlers
   ( startApp,
-    redirectUser
   )
 where
 
@@ -25,6 +24,7 @@ import Network.Wai.Handler.Warp
 import Servant
 import Servant.Auth.Server as SAS
 import Typeclasses
+import Urls
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
@@ -131,7 +131,3 @@ redirect alias = do
   case mAlias of
     Just url -> pure $ addHeader url "ok"
     Nothing -> throwError err404
-
--- TODO: move that to Urls/Links/whatever after the module's created
-redirectUser :: (Database m) => AliasName -> m (Maybe AliasOrigin)
-redirectUser alias = fmap (fmap aliasOrigin) (lookupAlias alias)
