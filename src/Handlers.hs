@@ -102,18 +102,14 @@ signin ::
         NoContent
     )
 signin cookies jwts email pass = do
-  mUser <- lookupUser email
-  case mUser of
-    Nothing -> throwError err404
-    Just user@(User uemail uHash) -> do
-      valid <- validatePassword uHash pass
-      if valid
-        then do
-          mApplyCookies <- liftIO $ acceptLogin cookies jwts user
-          case mApplyCookies of
-            Nothing -> throwError err404
-            Just applyCookies -> pure $ applyCookies NoContent
-        else throwError err404
+  valid <- signinCheck email pass
+  if valid
+    then do
+      mApplyCookies <- liftIO $ acceptLogin cookies jwts (User email pass)
+      case mApplyCookies of
+        Nothing -> throwError err404
+        Just applyCookies -> pure $ applyCookies NoContent
+    else throwError err404
 
 signout ::
   CookieSettings ->
@@ -123,7 +119,7 @@ signout ::
         '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
         NoContent
     )
-signout cookies (SAS.Authenticated user) = pure $ SAS.clearSession cookies NoContent
+signout cookies (SAS.Authenticated _) = pure $ SAS.clearSession cookies NoContent
 signout _ _ = throwError err401
 
 shorten :: SAS.AuthResult User -> Text -> Maybe Text -> AppM Text
