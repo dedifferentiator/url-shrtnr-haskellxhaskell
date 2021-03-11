@@ -3,10 +3,12 @@
 
 module Handlers
   ( startApp,
+    mkApp,
   )
 where
 
 import Api
+import AppM
 import Authentication
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
@@ -24,7 +26,8 @@ import Servant
 import Servant.Auth.Server as SAS
 import Typeclasses
 import Urls
-import AppM
+import System.Environment
+import System.Directory
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
@@ -47,8 +50,14 @@ mkApp cfg cs jwts appConf =
 
 startApp :: IO ()
 startApp = do
+  appDbPath <- getEnv "appDbPath"
+  let userPath = appDbPath <> "/user"
+      aliasPath = appDbPath <> "/alias"
+  createDirectoryIfMissing True userPath
+  createDirectoryIfMissing True aliasPath
+
   let port = 3001
-  let appConf = AppConfig port ""
+  let appConf = AppConfig port appDbPath
   -- TODO: we should persist the key
   myKey <- generateKey
   -- Adding some configurations. All authentications require CookieSettings to
@@ -70,6 +79,7 @@ server cs jwts =
 
 signup :: Email -> Password -> AppM NoContent
 signup email password = do
+  logInfo $ "Signing up email " ++ show email
   result <- registerUser email password
   case result of
     (Right _) -> pure NoContent
