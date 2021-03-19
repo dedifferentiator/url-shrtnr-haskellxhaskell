@@ -31,5 +31,5 @@ signinCheck :: (Database m, Hasher m) => Email -> Password -> m Bool
 signinCheck email pass = do
   mUser <- lookupUser email
   case mUser of
-    Just (User _ uhash) -> validatePassword uhash pass
+    Just (User _ uhash) -> validatePassword pass uhash
     Nothing -> pure False
