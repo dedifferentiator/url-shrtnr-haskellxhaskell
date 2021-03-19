@@ -52,10 +52,8 @@ startApp :: IO ()
 startApp = do
   appDbPath <- getEnv "appDbPath"
   let userPath = appDbPath <> "/user"
-      aliasPath = appDbPath <> "/alias"
       linkPath = appDbPath <> "/link"
   createDirectoryIfMissing True userPath
-  createDirectoryIfMissing True aliasPath
   createDirectoryIfMissing True linkPath
 
   let port = 3001
