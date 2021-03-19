@@ -24,10 +24,10 @@ import Models
 import Network.Wai.Handler.Warp
 import Servant
 import Servant.Auth.Server as SAS
+import System.Directory
+import System.Environment
 import Typeclasses
 import Urls
-import System.Environment
-import System.Directory
 
 appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
@@ -52,9 +52,9 @@ startApp :: IO ()
 startApp = do
   appDbPath <- getEnv "appDbPath"
   let userPath = appDbPath <> "/user"
-      aliasPath = appDbPath <> "/alias"
+      linkPath = appDbPath <> "/link"
   createDirectoryIfMissing True userPath
-  createDirectoryIfMissing True aliasPath
+  createDirectoryIfMissing True linkPath
 
   let port = 3001
   let appConf = AppConfig port appDbPath
@@ -118,6 +118,7 @@ signout _ _ = throwError err401
 
 shorten :: SAS.AuthResult User -> AliasOrigin -> Maybe AliasName -> AppM AliasName
 shorten (SAS.Authenticated user) link mAlias = do
+  logInfo $ "Trying to shorten " <> show link <> " for " <> show (userEmail user)
   let email = userEmail user
   result <- createAlias link mAlias email
   case result of
