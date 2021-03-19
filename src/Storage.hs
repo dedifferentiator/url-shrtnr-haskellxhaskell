@@ -1,5 +1,17 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Storage where
+module Storage
+  ( initDatabase,
+    addUserFs,
+    addAliasFs,
+    lookupUserFs,
+    lookupAliasFs,
+    removeUserFs,
+    removeAliasFs,
+    getAllUsersFs,
+    getAllAliasesFs,
+    InitDbProof
+  )
+where
 
 import Models
 import Typeclasses
@@ -11,6 +23,17 @@ import System.Directory
 import Data.Binary
 import Data.Text.Encoding.Base32 (encodeBase32)
 import Control.Exception
+
+data InitDbProof = InitDbProof
+
+initDatabase :: AppConfig -> IO InitDbProof
+initDatabase appConfig = do
+  let dbPath = appDbPath appConfig
+      userPath = dbPath <> "/user"
+      linkPath = dbPath <> "/link"
+  createDirectoryIfMissing True userPath
+  createDirectoryIfMissing True linkPath
+  pure InitDbProof
 
 -- Generic functions
 isHidden :: String -> Bool

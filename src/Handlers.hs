@@ -24,6 +24,7 @@ import Models
 import Network.Wai.Handler.Warp
 import Servant
 import Servant.Auth.Server as SAS
+import Storage
 import System.Directory
 import System.Environment
 import Typeclasses
@@ -33,12 +34,13 @@ appToHandler :: AppConfig -> AppM a -> Handler a
 appToHandler = flip runReaderT
 
 mkApp ::
+  InitDbProof ->
   Context '[SAS.CookieSettings, SAS.JWTSettings] ->
   CookieSettings ->
   JWTSettings ->
   AppConfig ->
   Application
-mkApp cfg cs jwts appConf =
+mkApp _ cfg cs jwts appConf =
   serveWithContext api cfg $
     hoistServerWithContext
       api
@@ -51,13 +53,11 @@ mkApp cfg cs jwts appConf =
 startApp :: IO ()
 startApp = do
   appDbPath <- getEnv "appDbPath"
-  let userPath = appDbPath <> "/user"
-      linkPath = appDbPath <> "/link"
-  createDirectoryIfMissing True userPath
-  createDirectoryIfMissing True linkPath
 
   let port = 3001
   let appConf = AppConfig port appDbPath
+
+  dbInitialized <- initDatabase appConf
   -- TODO: we should persist the key
   myKey <- generateKey
   -- Adding some configurations. All authentications require CookieSettings to
@@ -65,7 +65,7 @@ startApp = do
   let jwtCfg = defaultJWTSettings myKey
       cookieCfg = defaultCookieSettings
       cfg = cookieCfg :. jwtCfg :. EmptyContext
-  run port $ mkApp cfg cookieCfg jwtCfg appConf
+  run port $ mkApp dbInitialized cfg cookieCfg jwtCfg appConf
 
 server :: CookieSettings -> JWTSettings -> ServerT (Api auths) AppM
 server cs jwts =
