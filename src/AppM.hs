@@ -25,9 +25,9 @@ instance Database AppM where
   removeAlias = removeAliasFs
 
 instance Logger AppM where
-  logInfo = liftIO . putStrLn
-  logWarning = liftIO . putStrLn
-  logError = liftIO . putStrLn
+  logInfo = liftIO . putStrLn . ("[INFO] " <>)
+  logWarning = liftIO . putStrLn . ("[WARN] " <>)
+  logError = liftIO . putStrLn . ("[ERROR]" <>)
 
 instance Hasher AppM where
   hashPassword pass = do

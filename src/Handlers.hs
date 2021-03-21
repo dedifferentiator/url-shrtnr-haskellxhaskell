@@ -79,11 +79,16 @@ server cs jwts =
 
 signup :: Email -> Password -> AppM NoContent
 signup email password = do
-  logInfo $ "Signing up email " ++ show email
+  logInfo $ "Signing up email " <> show email
   result <- registerUser email password
   case result of
-    (Right _) -> pure NoContent
-    (Left _) -> throwError err400
+    (Right _) -> do
+      logInfo $ "Successfully registered " <> show email
+      pure NoContent
+    (Left e) -> do
+      logWarning $
+        "Failed to register " <> show email <> " with error: " <> show e
+      throwError err400
 
 signin ::
   CookieSettings ->
@@ -96,14 +101,21 @@ signin ::
         NoContent
     )
 signin cookies jwts email pass = do
+  logInfo $ "Signing in email " <> show email
   valid <- signinCheck email pass
   if valid
     then do
       mApplyCookies <- liftIO $ acceptLogin cookies jwts (User email pass)
       case mApplyCookies of
-        Nothing -> throwError err404
-        Just applyCookies -> pure $ applyCookies NoContent
-    else throwError err404
+        Nothing -> do
+          logError $ "Error in applying cookies for " <> show email
+          throwError err404
+        Just applyCookies -> do
+          logInfo $ "Successfully signed in " <> show email
+          pure $ applyCookies NoContent
+    else do
+      logWarning $ "Failed to sign in " <> show email
+      throwError err404
 
 signout ::
   CookieSettings ->
@@ -113,7 +125,9 @@ signout ::
         '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
         NoContent
     )
-signout cookies (SAS.Authenticated _) = pure $ SAS.clearSession cookies NoContent
+signout cookies (SAS.Authenticated user) = do
+  logInfo $ "Successfully signed out " <> show (userEmail user)
+  pure $ SAS.clearSession cookies NoContent
 signout _ _ = throwError err401
 
 shorten :: SAS.AuthResult User -> AliasOrigin -> Maybe AliasName -> AppM AliasName
@@ -122,13 +136,30 @@ shorten (SAS.Authenticated user) link mAlias = do
   let email = userEmail user
   result <- createAlias link mAlias email
   case result of
-    (Right aName) -> pure aName
-    (Left _) -> throwError err401
+    (Right aName) -> do
+      logInfo $
+        "Successfully shortened "
+          <> show link
+          <> " to "
+          <> show aName
+          <> " for "
+          <> show (userEmail user)
+      pure aName
+    (Left e) -> do
+      logError $
+        "Failed to shorten "
+          <> show link
+          <> " for "
+          <> show (userEmail user)
+          <> " with error: "
+          <> show e
+      throwError err401
 shorten _ _ _ = throwError err401
 
 listUrls :: SAS.AuthResult User -> AppM [AliasName]
 listUrls (SAS.Authenticated user) = do
   let email = userEmail user
+  logInfo $ "Successfully retrieved urls for " <> show email
   getUrls email
 listUrls _ = throwError err401
 
@@ -136,13 +167,31 @@ deleteAlias :: SAS.AuthResult User -> Text -> AppM NoContent
 deleteAlias (SAS.Authenticated user) alias = do
   result <- annihilateAlias alias
   case result of
-    (Right _) -> pure NoContent
-    (Left _) -> throwError err401
+    (Right _) -> do
+      logInfo $
+        "Successfully deleted alias "
+          <> show alias
+          <> " of "
+          <> show (userEmail user)
+      pure NoContent
+    (Left e) -> do
+      logError $
+        "Error when trying to delete alias "
+          <> show alias
+          <> " of "
+          <> show (userEmail user)
+          <> ": "
+          <> show e
+      throwError err401
 deleteAlias _ _ = throwError err401
 
 redirect :: AliasName -> AppM (Headers '[Header "Location" Text] Text)
 redirect alias = do
   mAlias <- redirectUser alias
   case mAlias of
-    Just url -> pure $ addHeader url "ok"
-    Nothing -> throwError err404
+    Just url -> do
+      logInfo $ "Successfully created redirect to " <> show alias
+      pure $ addHeader url "ok"
+    Nothing -> do
+      logWarning $ "No " <> show alias <> " registered to be used as an alias"
+      throwError err404
